@@ -1,20 +1,20 @@
 ﻿local initalized = false
 local clearTime = 0
-FiveMinuteBlessingOn = false;
-ppRefreshAfterClear = false
+local LastCast = { };
+local LastCastOn = { };
+local PP_Symbols = 0
+local IsPally = 0;
+local ppRefreshAfterClear = false
+local AllPallys = { };
+local CurrentBuffs = { };
+local PP_PREFIX = "PLPWR";
+local PallyPower = {};
+local BlessingIcon = {};
+local BuffIcon = {};
 
-BINDING_HEADER_PALLYPOWER_HEADER = "Pally Power";
-BINDING_NAME_TOGGLE = "Toggle Buff Bar";
-BINDING_NAME_REPORT = "Report Assignments";
-
-AllPallys = { };
-
+-- Saved variables
 PallyPower_Assignments = { };
-
-PallyPower = {};
-
-BlessingIcon = {};
-BuffIcon = {};
+FiveMinuteBlessingOn = false;
 PP_PerUser = {
     scalemain = 1, -- corner of main window docked to
     scalebar = 1, -- corner menu window is docked from
@@ -22,10 +22,11 @@ PP_PerUser = {
     scanperframe = 1,
     smartbuffs = 1,
 }
-PP_NextScan = PP_PerUser.scanfreq
+
+local PP_NextScan = PP_PerUser.scanfreq
 
 function PallyPower_FiveMinuteBlessings()
-    isChecked = FiveMinBlessingChk:GetChecked()
+    local isChecked = FiveMinBlessingChk:GetChecked()
 
     if (isChecked == 1) then
       PP_Symbols = 0
@@ -38,11 +39,6 @@ function PallyPower_FiveMinuteBlessings()
     end
 end
 
-LastCast = { };
-LastCastOn = { };
-PP_Symbols = 0
-IsPally = 0;
-
 PallyPower_ClassTexture = { };
 PallyPower_ClassTexture[0] = "Interface\\AddOns\\PallyPower\\Icons\\Warrior";
 PallyPower_ClassTexture[1] = "Interface\\AddOns\\PallyPower\\Icons\\Rogue";
@@ -54,12 +50,6 @@ PallyPower_ClassTexture[6] = "Interface\\AddOns\\PallyPower\\Icons\\Mage";
 PallyPower_ClassTexture[7] = "Interface\\AddOns\\PallyPower\\Icons\\Warlock";
 PallyPower_ClassTexture[8] = "Interface\\AddOns\\PallyPower\\Icons\\Shaman";
 PallyPower_ClassTexture[9] = "Interface\\AddOns\\PallyPower\\Icons\\Pet";
-
-Assignment = { };
-
-CurrentBuffs = { };
-
-PP_PREFIX = "PLPWR";
 
 local RestorSelfAutoCastTimeOut = 1;
 local RestorSelfAutoCast = false;
@@ -255,8 +245,8 @@ function PallyPower_FormatTime(time)
     if not time or time < 0 then
         return "";
     end
-    mins = floor(time / 60)
-    secs = time - (mins * 60)
+    local mins = floor(time / 60)
+    local secs = time - (mins * 60)
     return string.format("%d:%02d", mins, secs);
 end
 
@@ -343,7 +333,7 @@ function PallyPower_UpdateUI()
     if ((IsPally == 1) or (GetNumRaidMembers() > 0 and GetNumPartyMembers() > 0)) then
         PallyPowerBuffBar:Show()
         PallyPowerBuffBarTitleText:SetText(format(PallyPower_BuffBarTitle, PP_Symbols));
-        BuffNum = 1
+        local BuffNum = 1
         if PallyPower_Assignments[UnitName("player")] then
             local assign = PallyPower_Assignments[UnitName("player")]
             for class = 0, 9 do
@@ -419,66 +409,70 @@ function PallyPower_ScanSpells()
     
     while true do
         local spellName, spellRank = GetSpellName(i, BOOKTYPE_SPELL)
-        local spellTexture = GetSpellTexture(i, BOOKTYPE_SPELL)
-        if not spellName then do break end end
+        if not spellName then
+            break
+        end
+
         PallyPower_ScanInventory()
         if not spellRank or spellRank == "" then
-			spellRank = PallyPower_Rank1
+            spellRank = PallyPower_Rank1
         end
         
-    if FiveMinBlessing == true then
-        local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
-		if bless then
-            local tmp_str, _ = string.find(spellName, "Greater")
-            for id, name in PallyPower_BlessingID do
-				if ((name == bless) and (tmp_str ~= 1)) then
-					local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
-					if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
-						RankInfo[id] = {};
-						RankInfo[id]["rank"] = rank;
-						RankInfo[id]["id"] = i;
-						RankInfo[id]["name"] = name;
-						RankInfo[id]["talent"] = 0;
-					end
-				end
-			end
-		end
-    else
-        local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
-        if bless then
-            local tmp_str, _ = string.find(spellName, "Greater")
-            for id, name in PallyPower_BlessingID do
-				if ((name == bless) and (tmp_str == 1)) then
-					local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
-					if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
-						RankInfo[id] = {};
-						RankInfo[id]["rank"] = rank;
-						RankInfo[id]["id"] = i;
-						RankInfo[id]["name"] = name;
-						RankInfo[id]["talent"] = 0;
-					end
-				end
-			end
+        if FiveMinBlessing == true then
+            local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
+            if bless then
+                local tmp_str, _ = string.find(spellName, "Greater")
+                for id, name in PallyPower_BlessingID do
+                    if ((name == bless) and (tmp_str ~= 1)) then
+                        local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
+                        if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
+                            RankInfo[id] = {};
+                            RankInfo[id]["rank"] = rank;
+                            RankInfo[id]["id"] = i;
+                            RankInfo[id]["name"] = name;
+                            RankInfo[id]["talent"] = 0;
+                        end
+                    end
+                end
+            end
+        else
+            local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
+            if bless then
+                local tmp_str, _ = string.find(spellName, "Greater")
+                for id, name in PallyPower_BlessingID do
+                    if ((name == bless) and (tmp_str == 1)) then
+                        local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
+                        if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
+                            RankInfo[id] = {};
+                            RankInfo[id]["rank"] = rank;
+                            RankInfo[id]["id"] = i;
+                            RankInfo[id]["name"] = name;
+                            RankInfo[id]["talent"] = 0;
+                        end
+                    end
+                end
+            end
         end
+        i = i + 1
     end
-    i = i + 1
-    end
+
     local numTabs = GetNumTalentTabs();
     for t = 1, numTabs do
         local numTalents = GetNumTalents(t);
         for i = 1, numTalents do
-            nameTalent, icon, iconx, icony, currRank, maxRank = GetTalentInfo(t, i);
+            local nameTalent, icon, iconx, icony, currRank, maxRank = GetTalentInfo(t, i);
             if string.find(nameTalent, PallyPower_BlessingTalentSearch) then
                 initalized = true;
-				for id = 0, 1 do -- wis, might
-					if (RankInfo[id]) then
-						RankInfo[id]["talent"] = currRank
-					end
-				end
+                for id = 0, 1 do -- wis, might
+                    if (RankInfo[id]) then
+                        RankInfo[id]["talent"] = currRank
+                    end
+                end
             end
         end
     end
-    _, class = UnitClass("player");
+
+    local _, class = UnitClass("player");
     if class == "PALADIN" then
         AllPallys[UnitName("player")] = RankInfo;
         if initalized then
@@ -563,7 +557,7 @@ function PallyPower_SendSelf()
     if not AllPallys[UnitName("player")] then
         return
     end
-    msg = "SELF "
+    local msg = "SELF "
     local RankInfo = AllPallys[UnitName("player")]
     local i
     for id = 0, 5 do
@@ -602,10 +596,10 @@ function PallyPower_ParseMessage(sender, msg)
         if string.find(msg, "^SELF") then
             PallyPower_Assignments[sender] = {}
             AllPallys[sender] = {}
-            _, _, numbers, assign = string.find(msg, "SELF ([0-9n]*)@?([0-9n]*)")
+            local _, _, numbers, assign = string.find(msg, "SELF ([0-9n]*)@?([0-9n]*)")
             for id = 0, 5 do
-                rank = string.sub(numbers, id * 2 + 1, id * 2 + 1)
-                talent = string.sub(numbers, id * 2 + 2, id * 2 + 2)
+                local rank = string.sub(numbers, id * 2 + 1, id * 2 + 1)
+                local talent = string.sub(numbers, id * 2 + 2, id * 2 + 2)
                 if not (rank == "n") then
                     AllPallys[sender][id] = { }
                     AllPallys[sender][id]["rank"] = rank
@@ -614,7 +608,7 @@ function PallyPower_ParseMessage(sender, msg)
             end
             if assign then
                 for id = 0, 9 do
-                    tmp = string.sub(assign, id + 1, id + 1)
+                    local tmp = string.sub(assign, id + 1, id + 1)
                     if (tmp == "n" or tmp == "") then
                         tmp = -1
                     end
@@ -624,7 +618,7 @@ function PallyPower_ParseMessage(sender, msg)
             PallyPower_UpdateUI()
         end
         if string.find(msg, "^ASSIGN") then
-            _, _, name, class, skill = string.find(msg, "^ASSIGN (.*) (.*) (.*)")
+            local _, _, name, class, skill = string.find(msg, "^ASSIGN (.*) (.*) (.*)")
             if (not (name == sender)) and (not PallyPower_CheckRaidLeader(sender)) then
                 return false
             end
@@ -637,7 +631,7 @@ function PallyPower_ParseMessage(sender, msg)
             PallyPower_UpdateUI()
         end
         if string.find(msg, "^MASSIGN") then
-            _, _, name, skill = string.find(msg, "^MASSIGN (.*) (.*)")
+            local _, _, name, skill = string.find(msg, "^MASSIGN (.*) (.*)")
             if (not (name == sender)) and (not PallyPower_CheckRaidLeader(sender)) then
                 return false
             end
@@ -651,7 +645,7 @@ function PallyPower_ParseMessage(sender, msg)
             PallyPower_UpdateUI()
         end
         if string.find(msg, "^SYMCOUNT ([0-9]*)") then
-            _, _, count = string.find(msg, "^SYMCOUNT ([0-9]*)")
+            local _, _, count = string.find(msg, "^SYMCOUNT ([0-9]*)")
             if AllPallys[sender] then
                 AllPallys[sender]["symbols"] = count;
             else
@@ -712,10 +706,10 @@ function PallyPowerGridButton_OnLoad(btn)
 end
 
 function PallyPowerGridButton_OnClick(btn, mouseBtn)
-    _, _, pnum, class = string.find(btn:GetName(), "PallyPowerFramePlayer(.+)Class(.+)");
+    local _, _, pnum, class = string.find(btn:GetName(), "PallyPowerFramePlayer(.+)Class(.+)");
     pnum = pnum + 0;
     class = class + 0;
-    pname = getglobal("PallyPowerFramePlayer" .. pnum .. "Name"):GetText()
+    local pname = getglobal("PallyPowerFramePlayer" .. pnum .. "Name"):GetText()
     if not PallyPower_CanControl(pname) then
         return false
     end
@@ -737,13 +731,14 @@ end
 
 function PallyPower_PerformCycleBackwards(name, class)
 
-    shift = IsShiftKeyDown()
+    local shift = IsShiftKeyDown()
 
     --force pala (all buff possible) when shift wheeling
     if shift then
         class = 4
     end
 
+    local cur
     if not PallyPower_Assignments[name][class] then
         cur = 6
     else
@@ -780,13 +775,14 @@ end
 
 function PallyPower_PerformCycle(name, class)
 
-    shift = IsShiftKeyDown()
+    local shift = IsShiftKeyDown()
 
     --force pala (all buff possible) when shift wheeling
     if shift then
         class = 4
     end
 
+    local cur
     if not PallyPower_Assignments[name][class] then
         cur = -1
     else
@@ -887,7 +883,7 @@ function PallyPower_ScanInventory()
         return
     end
     PP_Debug("Scanning for symbols");
-    oldcount = PP_Symbols
+    local oldcount = PP_Symbols
     PP_Symbols = 0
     for bag = 0, 4 do
         local bagslots = GetContainerNumSlots(bag);
@@ -925,13 +921,11 @@ function PallyPower_ScanRaid()
             for i = 1, GetNumRaidMembers() do
                 tinsert(PP_Scanners, "raid" .. i)
             end
-            INRAID = 1
         else
             tinsert(PP_Scanners, "player");
             for i = 1, GetNumPartyMembers() do
                 tinsert(PP_Scanners, "party" .. i)
             end
-            INRAID = 0
         end
     end
     local tests = PP_PerUser.scanperframe
@@ -940,7 +934,7 @@ function PallyPower_ScanRaid()
     end
 
     while PP_Scanners[1] do
-        unit = PP_Scanners[1]
+        local unit = PP_Scanners[1]
         local name = UnitName(unit)
         local class = UnitClass(unit)
         if (name and class) then
@@ -1171,10 +1165,10 @@ function PallyPower_ShowFeedback(msg, r, g, b, a)
 end
 
 function PallyPowerGridButton_OnMouseWheel(btn, arg1)
-    _, _, pnum, class = string.find(btn:GetName(), "PallyPowerFramePlayer(.+)Class(.+)");
+    local _, _, pnum, class = string.find(btn:GetName(), "PallyPowerFramePlayer(.+)Class(.+)");
     pnum = pnum + 0;
     class = class + 0;
-    pname = getglobal("PallyPowerFramePlayer" .. pnum .. "Name"):GetText()
+    local pname = getglobal("PallyPowerFramePlayer" .. pnum .. "Name"):GetText()
     if not PallyPower_CanControl(pname) then
         return false
     end

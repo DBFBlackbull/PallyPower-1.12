@@ -11,7 +11,7 @@ PallyPower_BlessingID[3] = "Light";
 PallyPower_BlessingID[4] = "Kings";
 PallyPower_BlessingID[5] = "Sanctuary";
 
-PallyPower_BlessingTalentSearch = "Improved Blessings";
+PallyPower_BlessingTalentSearch = "Improved Blessing (.*)";
 
 if (FiveMinBlessing == false) 
   then
