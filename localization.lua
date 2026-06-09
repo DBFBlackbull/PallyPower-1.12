@@ -11,17 +11,12 @@ PallyPower_BlessingID[3] = "Light";
 PallyPower_BlessingID[4] = "Kings";
 PallyPower_BlessingID[5] = "Sanctuary";
 
-PallyPower_BlessingTalentSearch = "Improved Blessing (.*)";
+PallyPower_BlessingTalentSearch = "Improved Blessing of (.*)";
 
-if (FiveMinBlessing == false) 
-  then
-    PallyPower_BlessingSpellSearch = "Greater Blessing of (.*)";
-  else
-    PallyPower_BlessingSpellSearch = "Blessing of (.*)";
-  
-end
---PallyPower_BlessingSpellSearch = "Blessing of (.*)";
---PallyPower_FiveManBlessingSpellSearch = "Blessing of (.*)";
+PallyPower_BlessingSpellSearch = "^Greater Blessing of (.*)";
+PallyPower_GreaterBlessingSpellSearch = "^Greater Blessing of (.*)";
+PallyPower_LesserBlessingSpellSearch = "^Blessing of (.*)";
+
 PallyPower_Rank1 = "Rank 1"
 PallyPower_RankSearch = "Rank (.*)"
 PallyPower_Symbol = "Symbol of Kings"

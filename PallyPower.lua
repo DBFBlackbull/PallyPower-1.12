@@ -82,12 +82,12 @@ end
 
 function PallyPower_OnUpdate(tdiff)
     if (RestorSelfAutoCast) then
-		RestorSelfAutoCastTimeOut = RestorSelfAutoCastTimeOut - tdiff;
-		if (RestorSelfAutoCastTimeOut < 0) then
-			RestorSelfAutoCast = false;
-			SetCVar("autoSelfCast", "1");
-		end
-	end
+        RestorSelfAutoCastTimeOut = RestorSelfAutoCastTimeOut - tdiff;
+        if (RestorSelfAutoCastTimeOut < 0) then
+            RestorSelfAutoCast = false;
+            SetCVar("autoSelfCast", "1");
+        end
+    end
     
     --  PP_Debug("OnUpdate "..tdiff);
     if (not PP_PerUser.scanfreq) then
@@ -106,16 +106,14 @@ function PallyPower_OnUpdate(tdiff)
 end
 
 function PallyPower_OnEvent(event)
-    local type, id;
     if (event == "SPELLS_CHANGED" or event == "PLAYER_ENTERING_WORLD") then
-		if (FiveMinuteBlessingOn == true) then
-			FiveMinBlessing = true
-			PallyPower_SwapIconsForFiveMin()
-			
-		else
-			FiveMinBlessing = false
-			PallyPower_SwapIconsForFifteenMin()
-		end
+        if (FiveMinuteBlessingOn) then
+            PallyPower_BlessingSpellSearch = PallyPower_LesserBlessingSpellSearch
+            PallyPower_SwapIconsForFiveMin()
+        else
+            PallyPower_BlessingSpellSearch = PallyPower_GreaterBlessingSpellSearch
+            PallyPower_SwapIconsForFifteenMin()
+        end
         PallyPower_UpdateUI()
         PallyPower_ScanSpells()
     end
@@ -417,38 +415,19 @@ function PallyPower_ScanSpells()
         if not spellRank or spellRank == "" then
             spellRank = PallyPower_Rank1
         end
-        
-        if FiveMinBlessing == true then
-            local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
-            if bless then
-                local tmp_str, _ = string.find(spellName, "Greater")
-                for id, name in PallyPower_BlessingID do
-                    if ((name == bless) and (tmp_str ~= 1)) then
-                        local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
-                        if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
-                            RankInfo[id] = {};
-                            RankInfo[id]["rank"] = rank;
-                            RankInfo[id]["id"] = i;
-                            RankInfo[id]["name"] = name;
-                            RankInfo[id]["talent"] = 0;
-                        end
-                    end
-                end
-            end
-        else
-            local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
-            if bless then
-                local tmp_str, _ = string.find(spellName, "Greater")
-                for id, name in PallyPower_BlessingID do
-                    if ((name == bless) and (tmp_str == 1)) then
-                        local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
-                        if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
-                            RankInfo[id] = {};
-                            RankInfo[id]["rank"] = rank;
-                            RankInfo[id]["id"] = i;
-                            RankInfo[id]["name"] = name;
-                            RankInfo[id]["talent"] = 0;
-                        end
+
+        DEFAULT_CHAT_FRAME:AddMessage("[PallyPower] " .. PallyPower_BlessingSpellSearch)
+        local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
+        if bless then
+            for id, name in PallyPower_BlessingID do
+                if name == bless then
+                    local _, _, rank = string.find(spellRank, PallyPower_RankSearch);
+                    if not (RankInfo[id] and spellRank < RankInfo[id]["rank"]) then
+                        RankInfo[id] = {};
+                        RankInfo[id]["rank"] = rank;
+                        RankInfo[id]["id"] = i;
+                        RankInfo[id]["name"] = name;
+                        RankInfo[id]["talent"] = 0;
                     end
                 end
             end
@@ -461,8 +440,10 @@ function PallyPower_ScanSpells()
         local numTalents = GetNumTalents(t);
         for i = 1, numTalents do
             local nameTalent, icon, iconx, icony, currRank, maxRank = GetTalentInfo(t, i);
-            if string.find(nameTalent, PallyPower_BlessingTalentSearch) then
+            local _, _, bless = string.find(nameTalent, PallyPower_BlessingTalentSearch)
+            if bless then
                 initalized = true;
+
                 for id = 0, 1 do -- wis, might
                     if (RankInfo[id]) then
                         RankInfo[id]["talent"] = currRank
@@ -1044,7 +1025,7 @@ function PallyPowerBuffButton_OnClick(btn, mousebtn)
                 PP_Debug("Trying to cast on " .. unit);
                 SpellTargetUnit(unit)
                 PP_NextScan = 1
-                if (FiveMinBlessing == true) then
+                if (FiveMinuteBlessingOn == true) then
                     LastCast[btn.buffID .. btn.classID] = 10 * 60;
                 else
                     LastCast[btn.buffID .. btn.classID] = 30 * 60;
