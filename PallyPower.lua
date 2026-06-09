@@ -571,6 +571,7 @@ function PallyPower_SendMessage(msg)
 end
 
 function PallyPower_ParseMessage(sender, msg)
+    -- Handle WOW_HC achievements in names
     if string.find(sender, "%-") then
         return
     end
