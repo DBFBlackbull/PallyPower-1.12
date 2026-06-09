@@ -274,6 +274,7 @@ function PallyPowerGrid_Update()
             end
             for id = 0, 5 do
                 if (skills[id]) then
+                    getglobal("PallyPowerFramePlayer" .. i .. "Icon" .. id):SetTexture(BlessingIcon[id])
                     getglobal("PallyPowerFramePlayer" .. i .. "Icon" .. id):Show()
                     getglobal("PallyPowerFramePlayer" .. i .. "Skill" .. id):Show()
                     local txt = skills[id]["rank"];
@@ -416,7 +417,6 @@ function PallyPower_ScanSpells()
             spellRank = PallyPower_Rank1
         end
 
-        DEFAULT_CHAT_FRAME:AddMessage("[PallyPower] " .. PallyPower_BlessingSpellSearch)
         local _, _, bless = string.find(spellName, PallyPower_BlessingSpellSearch)
         if bless then
             for id, name in PallyPower_BlessingID do
