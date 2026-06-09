@@ -444,9 +444,8 @@ function PallyPower_ScanSpells()
             local _, _, bless = string.find(nameTalent, PallyPower_BlessingTalentSearch)
             if bless then
                 initalized = true;
-
-                for id = 0, 1 do -- wis, might
-                    if (RankInfo[id]) then
+                for id, name in PallyPower_BlessingID do
+                    if name == bless then
                         RankInfo[id]["talent"] = currRank
                     end
                 end
@@ -1038,8 +1037,7 @@ function PallyPowerBuffButton_OnClick(btn, mousebtn)
                 LastCastOn[btn.classID] = {}
                 tinsert(LastCastOn[btn.classID], unit)
                 PallyPower_ShowFeedback(
-                format(PallyPower_Casting, PallyPower_BlessingID[btn.buffID], PallyPower_ClassID[btn.classID],
-                    UnitName(unit)), 0.0, 1.0, 0.0);
+                format(PallyPower_Casting, PallyPower_BlessingID[btn.buffID], PallyPower_ClassID[btn.classID], UnitName(unit)), 0.0, 1.0, 0.0);
                 TargetLastTarget()
                 return
             end
