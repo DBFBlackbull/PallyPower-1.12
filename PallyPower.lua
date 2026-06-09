@@ -11,6 +11,7 @@ local PP_PREFIX = "PLPWR";
 local PallyPower = {};
 local BlessingIcon = {};
 local BuffIcon = {};
+local PP_IsPally = false
 
 -- Saved variables
 PallyPower_Assignments = { };
@@ -570,6 +571,9 @@ function PallyPower_SendMessage(msg)
 end
 
 function PallyPower_ParseMessage(sender, msg)
+    if string.find(sender, "%-") then
+        return
+    end
     if not (sender == UnitName("player")) then
         if msg == "REQ" then
             PallyPower_SendSelf()
@@ -1026,9 +1030,9 @@ function PallyPowerBuffButton_OnClick(btn, mousebtn)
                 SpellTargetUnit(unit)
                 PP_NextScan = 1
                 if (FiveMinuteBlessingOn == true) then
-                    LastCast[btn.buffID .. btn.classID] = 10 * 60;
+                    LastCast[btn.buffID .. btn.classID] = 5 * 60;
                 else
-                    LastCast[btn.buffID .. btn.classID] = 30 * 60;
+                    LastCast[btn.buffID .. btn.classID] = 15 * 60;
                 end
                 LastCastOn[btn.classID] = {}
                 tinsert(LastCastOn[btn.classID], unit)
