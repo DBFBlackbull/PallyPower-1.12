@@ -445,7 +445,7 @@ function PallyPower_ScanSpells()
             if bless then
                 initalized = true;
                 for id, name in PallyPower_BlessingID do
-                    if name == bless then
+                    if name == bless and RankInfo[id] then
                         RankInfo[id]["talent"] = currRank
                     end
                 end
